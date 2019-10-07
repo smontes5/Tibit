@@ -12,15 +12,22 @@ def main():
     dataBase = mongoObject["network"]
     networkUsage = dataBase["networkUsage"]
     print("test")
-    stats1 = {"network": 1, "usage": 70, "id": 1}
+    stats1 = {"network": 1, "usage": 90, "id": 1}
     stats2 = {"network": 1, "usage": 90, "id": 2}
+    stats3 = {"network": 1, "usage": 60, "id": 3}
+    stats4 = {"network": 1, "usage": 50, "id": 4}
+
     print("doing network usage")
+    networkUsage.drop()
+
 
     #       Insert the documents into the collection and then call the calculateNetworkCongestion() function in order
     # to see if the combined network use is enough to trigger the print to the console.
 
     networkUsage.insert_one(stats1)
     networkUsage.insert_one(stats2)
+    networkUsage.insert_one(stats3)
+    networkUsage.insert_one(stats4)
     congested = calculateNetworkCongestion(networkUsage)
     if congested:
         calculateBottleNeck(networkUsage)
@@ -46,28 +53,59 @@ def calculateNetworkCongestion(network):
         return False
 
 
-#       Find which network (via their id's) who's usage statistics are at or above 70% and save them to a list
+#       Find which network (via their id's) who's usage statistics are above 70% and save them to a list
 
 def calculateBottleNeck(network):
-
     print("inside function")
     listOfStats = network.find({"network": 1})
-    bottlenNeckLocation = []
+    bottleNeckLocation = []
     for key in listOfStats:
-        if int(key["usage"]) >= 70:
+        if int(key["usage"]) > 70:
             print(str(key["usage"]))
-            bottlenNeckLocation.append(key["id"])
-    printList(network,bottlenNeckLocation)
-    return bottlenNeckLocation
+            bottleNeckLocation.append(key["id"])
+    printList(bottleNeckLocation)
+    findValues(network, bottleNeckLocation)
+    return bottleNeckLocation
 
-#       Fix the bottleneck by assigning network usage to other network's (via their id's)
 
-#       This code will need to be used to find all of the differences in the network usage that is below 70%, so that
-# other netowrks can offload to it. Doing this will spread the load of the network out more.
-def fixBottleNeck(network, bottleneckLocation):
-    networkId = []
-    networkLoad = {}
-    #for id in bottleneckLocation:
+#       This returns a dictionary of network values and the amount of free resources they have (below 70%) to give to
+# other networks.
+
+def findValues(network, bottleneckLocation):
+    networkNeeded = {}
+    freeNetworkLoad = {}
+    count = 0
+    listOfStats = network.find({"network": 1})
+    for key in listOfStats:
+        if key["usage"] < 70:
+            freeNetworkLoad[count] = {key["id"]: 70 - key["usage"]}
+            count += 1
+    for key in bottleneckLocation:
+        print(count)
+        networkNeeded[count] = {key: network.find_one({"id": key})["usage"] - 70}
+        count += 1
+        print(network.find_one({"id": key})["usage"])
+    print(networkNeeded)
+    print(freeNetworkLoad)
+    fixBottleNeck(freeNetworkLoad, networkNeeded)
+
+
+#       Fix the bottleneck by assigning network usage to other network's
+
+def fixBottleNeck(freeNetworkLoad, networkNeeded):
+    print(networkNeeded)
+    print(freeNetworkLoad)
+    for free in freeNetworkLoad:
+        for need in networkNeeded:
+            print(need)
+            print(free)
+#            need["usage"] = need["usage"] - free["usage"]
+ #           free = free["usage"] - need["usage"]
+ #           if need["usage"] < 0:
+ #               need["usage"] = 0
+ #           if free["usage"] < 0:
+ #               free["usage"] = 0
+
 
 
 #       Print function to print a list
