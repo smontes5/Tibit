@@ -29,8 +29,14 @@ def main():
     networkUsage.insert_one(stats3)
     networkUsage.insert_one(stats4)
     congested = calculateNetworkCongestion(networkUsage)
+    location = None
     if congested:
-        calculateBottleNeck(networkUsage)
+        location = calculateBottleNeck(networkUsage)
+    if location is not None:
+        arrayOfValues = findValues(networkUsage, location)
+        arrayOfNewValues = fixBottleNeck(arrayOfValues[0], arrayOfValues[1])
+        updateDatabase(arrayOfNewValues, networkUsage)
+        print(networkUsage)
     networkUsage.drop()
 
 
@@ -64,7 +70,6 @@ def calculateBottleNeck(network):
             print(str(key["usage"]))
             bottleNeckLocation.append(key["id"])
     printList(bottleNeckLocation)
-    findValues(network, bottleNeckLocation)
     return bottleNeckLocation
 
 
@@ -78,16 +83,14 @@ def findValues(network, bottleneckLocation):
     listOfStats = network.find({"network": 1})
     for key in listOfStats:
         if key["usage"] < 70:
-            freeNetworkLoad[count] = {key["id"]: 70 - key["usage"]}
-            count += 1
+            freeNetworkLoad[key["id"]] = 70 - key["usage"]
     for key in bottleneckLocation:
         print(count)
-        networkNeeded[count] = {key: network.find_one({"id": key})["usage"] - 70}
         count += 1
+        networkNeeded[key] = network.find_one({"id": key})["usage"] - 70
         print(network.find_one({"id": key})["usage"])
-    print(networkNeeded)
-    print(freeNetworkLoad)
-    fixBottleNeck(freeNetworkLoad, networkNeeded)
+    array = [freeNetworkLoad, networkNeeded]
+    return array
 
 
 #       Fix the bottleneck by assigning network usage to other network's
@@ -97,16 +100,26 @@ def fixBottleNeck(freeNetworkLoad, networkNeeded):
     print(freeNetworkLoad)
     for free in freeNetworkLoad:
         for need in networkNeeded:
-            print(need)
-            print(free)
-#            need["usage"] = need["usage"] - free["usage"]
- #           free = free["usage"] - need["usage"]
- #           if need["usage"] < 0:
- #               need["usage"] = 0
- #           if free["usage"] < 0:
- #               free["usage"] = 0
+            print(str(free) +" " +  str(freeNetworkLoad[free]))
+            print(str(need) + " "+  str(networkNeeded[need]))
+            networkNeeded[need] = networkNeeded[need] - freeNetworkLoad[free]
+            freeNetworkLoad[free] = freeNetworkLoad[free] - networkNeeded[need]
+            if int(networkNeeded[need]) < 0:
+                networkNeeded[need] = 0
+                break
+            if int(freeNetworkLoad[free]) < 0:
+                freeNetworkLoad[free] = 0
+    array = [freeNetworkLoad, networkNeeded]
+    return array
 
 
+def updateDatabase(array, collection):
+    print(array[0])
+    for id in array[0]:
+        collection.update_one({"id ": id}, {"$set": {"usage": int(70 - array[0][id])}})
+
+    for id in array[1]:
+        collection.update_one({"id ": id}, {"$set": {"usage": int(array[1][id] + 70)}})
 
 #       Print function to print a list
 
