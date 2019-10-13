@@ -106,12 +106,14 @@ def fixBottleNeck(freeNetworkLoad, networkNeeded):
 
     for free in freeNetworkLoad:
         for need in networkNeeded:
-            networkNeeded[need] = networkNeeded[need] - freeNetworkLoad[free]
-            if int(networkNeeded[need]) < 0:
-                networkNeeded[need] = 0
-            freeNetworkLoad[free] = freeNetworkLoad[free] - networkNeeded[need]
+            tempNeed = networkNeeded[need] - freeNetworkLoad[free]
+            tempFree = freeNetworkLoad[free] - networkNeeded[need]
+            networkNeeded[need] = tempNeed
+            freeNetworkLoad[free] = tempFree
             if int(freeNetworkLoad[free]) < 0:
                 freeNetworkLoad[free] = 0
+            if int(networkNeeded[need]) < 0:
+                networkNeeded[need] = 0
     array = [freeNetworkLoad, networkNeeded]
     return array
 
