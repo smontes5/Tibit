@@ -1,0 +1,11 @@
+{
+	"string": "important_string",
+	"number": 1,
+	"object": {
+		"object_int": 2,
+		"object_string": "test"
+	},
+	"array": ["one", "two", "three"],
+	"boolean": false,
+	"empty": null
+}
