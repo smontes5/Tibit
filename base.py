@@ -59,30 +59,63 @@ class database:
         return documents
 
 
-    def findAllValues(self, documents, key):
-        """ This returns all of the values of the specified key in the documents. If the key cannot be found in any of
-        the documents, None is returned.
+    def findAllPairs(self, documents, key):
+        """ This returns all of the key values of the specified key in the documents. If the key cannot be found in any
+        of the documents, None is returned.
 
         :param documents: These are the documents that contain the specified key.
         :return: A list of the key value pairs of all of the documents or None if it is empty.
         """
         valueList = None
         for document in documents:
-            valueList = document[key]
+            temparray = []
+            temparray[0] = key
+            temparray[1] = document[key]
+            valueList.append(temparray)
         return valueList
 
 
-    def updateValues(self, documents, key, values):
-        """ This updates all of the specified key value pairs within the specified documents.
+    def updateValues(self, collections, elements):
+        """ This updates all of the specified key value pairs within the specified collections.
 
-        :param documents: This is the list of documents that will be updated.
-        :param key: This is the list of keys whose values will be updated.
-        :return:
+        :param elements: This is the list of documents that will be updated.
+        :param key: This is the list of elements whose values will be updated.
+        :return: None
         """
 
-        # Will update this method and work on it more tomorrow.
-        for document in documents:
-            document.update({key: values})
+        for collection in collections:
+            for element in elements:
+                collection.update_many({element[0]: True}, element)
+        return None
+
+
+    def deleteObjects(self, collections, elements):
+        """ This function deletes either the collections specified (if <elements> param is not specified) or all of the
+        key value pairs in the collections if the <elements> param is given.
+
+        :param collections: This is the list of collections that will be deleted or the list of key value pairs that
+                            will be deleted.
+        :param elements: This is the list of key value pairs that will be deleted.
+        :return: None
+        """
+
+        if elements is None:
+            for collection in collections:
+                collection.dump()
+        else:
+            for collection in collections:
+                for element in element:
+                    collection.delete(element)
+
+
+    def changedatabase(self, databaseName):
+        """ This changes the database to the new database as specified by <databaseName>.
+
+        :param databaseName: This is the name of the database that will be used within the class.
+        :return: None
+        """
+
+        self.database = self.mongoObject(databaseName)
 
 
 class OLT:
