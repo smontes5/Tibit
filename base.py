@@ -1,16 +1,17 @@
 # beginning of base.py
 
 import pymongo
+import copy
 
 
 class database:
 
     def __init__(self):
-        """ This initializes the mongo object and the database object.
+        """ This initializes the Mongo object and the database object.
 
         """
         self.mongoObject = pymongo.MongoClient("mongodb://127.0.0.1:27017")
-        self.database = self.mongoObject["tibit_pon_controller"]
+        self.database = self.mongoObject[""]
 
 
     def getCollection(self, collectionName):
@@ -36,15 +37,17 @@ class database:
         """
 
         if value is None:
-            documents = collection.find(str({key + ": True"}))
+            documents = collection.find({key: "True"})
             return documents
-        document = collection.find_one(str({key +": " +value}))
+        document = collection.find_one({key: value})
         return document
 
 
     def getAllDocuments(self, collection, key, value):
         """ This returns the all documents within the collection that match the key value pair. If only a key is
         given then return all documents that contain that key.
+        Reference for $exists: True query operator: https://docs.mongodb.com/manual/reference/operator/query/exists/
+        at line 59.
 
         :param collection: This is the collection that the document is in.
         :param key: This is one of the keys in the document.
@@ -53,39 +56,38 @@ class database:
         """
 
         if value is None:
-            documents = collection.find(str({key + ": True"}))
+            documents = collection.find({key: {"$exists": "True"}})
             return documents
         documents = collection.find({key: value})
         return documents
 
 
     def findAllPairs(self, documents, key):
-        """ This returns all of the key values of the specified key in the documents. If the key cannot be found in any
+        """ This returns all of the key values of the specified keys in the documents. If the key cannot be found in any
         of the documents, None is returned.
 
         :param documents: These are the documents that contain the specified key.
         :return: A list of the key value pairs of all of the documents or None if it is empty.
         """
-        valueList = None
+        valueList = []
         for document in documents:
-            temparray = []
-            temparray[0] = key
-            temparray[1] = document[key]
-            valueList.append(temparray)
+                temparray = {key: document[key]}
+                valueList.append(temparray)
         return valueList
 
 
-    def updateValues(self, collections, elements):
+    def updateValues(self, collection, originalElements, newElements):
         """ This updates all of the specified key value pairs within the specified collections.
 
-        :param elements: This is the list of documents that will be updated.
-        :param key: This is the list of elements whose values will be updated.
+        :param collection: This is the collection of documents that will be updated.
+        :param newElements: This is the list of elements whose values will be sent to the
         :return: None
         """
 
-        for collection in collections:
-            for element in elements:
-                collection.update_many({element[0]: True}, element)
+        for originalElement, newElement in zip(originalElements, newElements):
+            #print(originalElement)
+            #print(newElement)
+            collection.update_one(originalElement, {"$set": newElement})
         return None
 
 
@@ -132,10 +134,25 @@ class OLT:
         OLTdata = collection.update(specificData)
         return None
 
-    def shaping(self):
-        shapeRate = self.getOLTData("Shape Rate")
-        if shapeRate > 50:
-            shapeRate = shapeRate -10
-        shapeRate = {"Shape Rate": shapeRate}
-        self.updateOLTData(shapeRate)
-        return None
+
+def main():
+    """ This is the main function that tests the functionality of the database class.
+
+    :return: None
+    """
+    db = database()
+    collection = db.getCollection("")
+    print(collection)
+    documents = db.getOneDocument(collection, "Time", "2019-10-23 23:51:28.097540")
+    print(documents)
+    documents = db.getAllDocuments(collection, "Time", None)
+    print(documents)
+    listOfValues = db.findAllPairs(documents, "Time")
+    listOfNewValues = copy.deepcopy(listOfValues)
+    listOfNewValues[0]["Time"] = 10
+    print(listOfValues)
+    print(listOfNewValues)
+    db.updateValues(collection, listOfValues, listOfNewValues)
+
+
+main()
