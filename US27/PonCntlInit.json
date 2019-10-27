@@ -1,0 +1,1 @@
+{"JSON": {"databaseDir": "database/", "defaultDir": "database/"}, "MongoDB": {"host": "127.0.0.1", "name": "tibit_pon_controller", "port": "27017"}, "databaseType": "JSON", "interface": "enp0s8.4090"}
