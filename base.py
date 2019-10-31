@@ -85,29 +85,24 @@ class database:
         """
 
         for originalElement, newElement in zip(originalElements, newElements):
-            #print(originalElement)
-            #print(newElement)
             collection.update_one(originalElement, {"$set": newElement})
         return None
 
 
-    def deleteObjects(self, collections, elements):
+    def deleteObjects(self, collection, elements):
         """ This function deletes either the collections specified (if <elements> param is not specified) or all of the
         key value pairs in the collections if the <elements> param is given.
 
-        :param collections: This is the list of collections that will be deleted or the list of key value pairs that
+        :param collection: This is the collection that will be deleted or the list of key value pairs that
                             will be deleted.
         :param elements: This is the list of key value pairs that will be deleted.
         :return: None
         """
 
         if elements is None:
-            for collection in collections:
-                collection.dump()
-        else:
-            for collection in collections:
-                for element in element:
-                    collection.delete(element)
+            collection.dump()
+        print(elements)
+        collection.delete_many(elements)
 
 
     def changedatabase(self, databaseName):
@@ -152,7 +147,10 @@ def main():
     listOfNewValues[0]["Time"] = 10
     print(listOfValues)
     print(listOfNewValues)
+    print(listOfValues)
     db.updateValues(collection, listOfValues, listOfNewValues)
+    print(listOfValues)
+    db.deleteObjects(collection, {"Time": 10})
 
 
 main()
