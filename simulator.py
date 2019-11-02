@@ -27,7 +27,7 @@ def main():
 
 #   Parse the collection name and error type.
     collectionName = ""
-    errorType = None
+    errorType = "default"
     if len(sys.argv) == 3:
         collectionName = sys.argv[1]
         errorType = sys.argv[2]
@@ -54,7 +54,7 @@ def randomValue(lowerBound, upperBound, type, decimalPoints):
 #   This is the beginning of the OLT generation that Arthur is doing.
 def generateRandomFile(collectionName, errorType):
     print("Arthur task")
-    if errorType is None:
+    if errorType is "default":
         print("default")
         #defaultGeneration()
     elif errorType == "packet drop":
