@@ -6,11 +6,14 @@ import sys
 import base
 
 
-errorTypes = ["packet drop", "bandwidth spike", "error cascade"]
+#   This is the list of error types that can be created by the program.
+errorTypes = ["packet drop", "bandwidth spike", "error cascade", "default"]
 
 
+#   This is the main control loop where the comman line parameters are parsed and the necessary functions are called.
 def main():
 
+#   Create the base.py object and check to see if -h was put in the command line.
     baseObject = base.database()
     if sys.argv[1] == "-h":
         message = "Required command line arguments:\n"
@@ -22,6 +25,7 @@ def main():
         print(message)
         sys.exit(0)
 
+#   Parse the collection name and error type.
     collectionName = ""
     errorType = None
     if len(sys.argv) == 3:
@@ -33,19 +37,21 @@ def main():
         print("Error enter the name of the collection you want to populate data with see -h for help")
         sys.exit(0)
 
+#   Generate the specified random file.
+    generateRandomFile(collectionName, errorType)
 
-    generateRandomFile(collectionName)
 
-
+#   This creates random values based on the lower bound, upper bound, and the type of number.
 def randomValue(lowerBound, upperBound, type, decimalPoints):
+    value = None
     if type == "int":
         value = random.randint(lowerBound, upperBound)
     elif type == "double" or type == float:
         value = random.uniform(lowerBound, upperBound)
     return value
 
-#   This is the beginning of the OLT generation that Arthur is doing in order to
 
+#   This is the beginning of the OLT generation that Arthur is doing.
 def generateRandomFile(collectionName, errorType):
     print("Arthur task")
     if errorType is None:
