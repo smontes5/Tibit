@@ -11,7 +11,7 @@ class database:
 
         """
         self.mongoObject = pymongo.MongoClient("mongodb://127.0.0.1:27017")
-        self.database = self.mongoObject[""]
+        self.database = self.mongoObject["tibit_pon_controller"]
 
 
     def getCollection(self, collectionName):
@@ -153,4 +153,4 @@ def main():
     db.deleteObjects(collection, {"Time": 10})
 
 
-main()
+#main()
