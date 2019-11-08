@@ -25,12 +25,22 @@ def timeElapsedSeconds(s1, s2):
 	elapsed = (t2-t1).total_seconds()
 	#es = elapsed.seconds
 	return elapsed
-
-
 """
-From OLT 70b3d552349c
+Display the error statistics of a time stamp d
 """
-
+def displayErrorStats(d):
+	s1 = d["OLT-PON"]["RX FEC Uncorrectable Blocks"]
+	s2 = d["OLT-PON"]["RX Errored BIP Bits"]
+	s3 = d["OLT-PON"]["RX Errored BIP Blocks"]
+	s4 = d["OLT-PON"]["RX HEC Errors"]
+	
+	print("Received FEC uncorrectable blocks " + str(s1))
+	print("Received Errored BIP Bits " + str(s2))
+	print("Received Errored BIP Blocks " + str(s3))
+	print("Received HEC Errors " + str(s4))
+"""
+From OLT 70b3d5523156
+"""
 with open("OLT-stamp1.json", "rt") as file:
 	stamp1 = json.load(file)
 
@@ -40,5 +50,7 @@ a = 1
 b = 1
 t = timeElapsedSeconds(stamp1, stamp2)	
 calcErrorRate(a, b, t)
+print("Displaying error stats for time stamp 2 ")
+displayErrorStats(stamp2)
 
 
