@@ -10,22 +10,39 @@ class Bandwidth:
         self.receivedName = "RX Total Octets"
 
 
-# This function gathers all of the TX bandwidth (in octets) for each OLT and returns the list of values.
+# This function gathers all of the bandwidth (in octets) for each OLT-NNI and return the list of values.
 
-    def findAllTXBandwidth(self, collectionList, interval):
+    def findAllPONBandwidth(self, collectionList, type, interval):
         interval = int(interval/5)
         baseObject = base.database()
         bandwidthUse = []
         for collectionString in collectionList:
             collection = baseObject.getCollection(collectionString)
             for _ in range(interval):
-                print(collection)
-                document = baseObject.getOneDocument(collection, self.sentName, None)
-                print(list(document))
-                pair = baseObject.findAllPairs(document, "")
-                print(pair)
-                value = pair[0][self.sentName]
-                bandwidthUse.append({collection: value})
+                if type == "TX":
+                    type = self.sentName
+                elif type == "RX":
+                    type = self.receivedName
+                value = baseObject.getOLTStat(collection, "OLT-PON", "OLT-PON", type)
+                bandwidthUse.append({collectionString: value})
+        return bandwidthUse
+
+
+# This function gathers all of the bandwidth (in octets) for each OLT-PON and return the list of values.
+
+    def findAllNNIBandwidth(self, collectionList, type, interval):
+        interval = int(interval/5)
+        baseObject = base.database()
+        bandwidthUse = []
+        for collectionString in collectionList:
+            print(collectionString)
+            collection = baseObject.getCollection(collectionString)
+            for _ in range(interval):
+                Unicast = baseObject.getOLTStat(collection, "OLT-NNI", "OLT-NNI", type +" Multicast Octets")
+                Multicast = baseObject.getOLTStat(collection, "OLT-NNI", "OLT-NNI", type + " Unicast Octets")
+                Broadcast = baseObject.getOLTStat(collection, "OLT-NNI", "OLT-NNI", type + " Broadcast Octets")
+                value = Unicast + Multicast + Broadcast
+                bandwidthUse.append({collectionString: value})
         return bandwidthUse
 
 
@@ -34,9 +51,15 @@ class Bandwidth:
 def main():
     print("main")
     bandwidthObejct = Bandwidth()
-    collectionList = [""]
-    TXBandwidth = bandwidthObejct.findAllTXBandwidth(collectionList, 5)
-    print(TXBandwidth)
+    collectionList = ["STATS-OLT-70b3d5523156", "STATS-OLT-70b3d552349c", "STATS-OLT-70b3d55235ca",
+                      "STATS-OLT-70b3d552360c"]
+    TXBandwidthPON = bandwidthObejct.findAllPONBandwidth(collectionList, "TX", 5)
+    RXBandwidthPON = bandwidthObejct.findAllPONBandwidth(collectionList, "RX", 5)
+    TXBandwidthNNI = bandwidthObejct.findAllNNIBandwidth(collectionList, "RX", 5)
+    print(TXBandwidthPON)
+    print(RXBandwidthPON)
+    print(TXBandwidthNNI)
+    #print(TXBandwidth)
 
 
 main()

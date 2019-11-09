@@ -37,7 +37,7 @@ class database:
         """
 
         if value is None:
-            documents = collection.find({key: "True"})
+            documents = collection.find_one({key: {"$exists": "True"}})
             return documents
         document = collection.find_one({key: value})
         return document
@@ -74,6 +74,17 @@ class database:
                 temparray = {key: document[key]}
                 valueList.append(temparray)
         return valueList
+
+
+    # This grabs OLT stats with the specified collection, document name, type (RX vs TX), and key.
+    
+    def getOLTStat(self, collection, documentName, type, key):
+
+        document = collection.find_one({documentName: {"$exists": "True"}})
+        if type is None:
+            return document[key]
+        else:
+            return document[type][key]
 
 
     def updateValues(self, collection, originalElements, newElements):
