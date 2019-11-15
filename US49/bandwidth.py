@@ -1,5 +1,6 @@
 
 import base
+import json
 import pymongo
 import re
 
@@ -9,22 +10,22 @@ class Bandwidth:
     def __init__(self):
         self.sentName = "TX Total Octets"
         self.receivedName = "RX Total Octets"
+        self.baseObject = base.database()
 
 
 # This function gathers all of the bandwidth (in octets) for each OLT-NNI and return the list of values.
 
     def findAllPONBandwidth(self, collectionList, type, interval):
         interval = int(interval/5)
-        baseObject = base.database()
         bandwidthUse = []
         for collectionString in collectionList:
-            collection = baseObject.getCollection(collectionString)
+            collection = self.baseObject.getCollection(collectionString)
             for _ in range(interval):
                 if type == "TX":
                     type = self.sentName
                 elif type == "RX":
                     type = self.receivedName
-                value = baseObject.getOLTStat(collection, "OLT-PON", "OLT-PON", type)
+                value = self.baseObject.getOLTStat(collection, "OLT-PON", "OLT-PON", type)
                 bandwidthUse.append({collectionString: value})
         return bandwidthUse
 
@@ -87,7 +88,38 @@ class Bandwidth:
 
         return finalList
 
-    
+
+# This function ports the supplied data to a JSON file with the name "Bandwidth".
+    def portToJSON(self, data):
+        print(data)
+        bandwidth = {}
+        with open("Bandwidth.json", "w") as file:
+            for element in data:
+                key = str(list(element.keys()))
+                key = re.sub("\[", "", key)
+                key = re.sub("]", "", key)
+                value = str(list(element.values()))
+                value = re.sub("\[", "", value)
+                value = re.sub("]", "", value)
+                bandwidth[key] = value
+            json.dump(bandwidth, file)
+
+
+# This function ports the supplied data to a MongoDB collection with the name "Bandwidth".
+    def portToMongoDB(self, data):
+        collection = self.baseObject.database["Bandwidth"]
+        collection.insert_one({"test": "1"})
+        for element in data:
+            key = str(list(element.keys()))
+            key = re.sub("\[", "", key)
+            key = re.sub("]", "", key)
+            value = str(list(element.values()))
+            value = re.sub("\[", "", value)
+            value = re.sub("]", "", value)
+            bandwidth = {key: value}
+            collection.insert_one(bandwidth)
+
+
 # This is the main function where the functionality is tested.
 
 def main():
@@ -101,8 +133,11 @@ def main():
     #print(TXBandwidthPON)
     #print(RXBandwidthPON)
     print(TXBandwidthNNI)
-    print(bandwidthObejct.merge(TXBandwidthNNI))
+    data = bandwidthObejct.merge(TXBandwidthNNI)
+    bandwidthObejct.portToJSON(data)
+    bandwidthObejct.portToMongoDB(data)
     #print(TXBandwidth)
+
 
 
 main()
